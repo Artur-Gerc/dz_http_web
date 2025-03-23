@@ -1,0 +1,47 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+src/main/java/ru/dz/netology/FutureClass.java
+src/main/java/ru/dz/netology/synchronization/Robot2.java
+src/main/java/ru/dz/netology/synchronization/RobotII.java
+src/main/java/ru/dz/netology/Main.java
+src/main/java/ru/dz/netology/synchronization
+src/main/java/ru/dz/netology/atomic_volitile
+src/main/java/ru/dz/netology/concurrent_collection
+src/main/java/ru/dz/netology/web_springmvc/http_web/HttpMethod.java
+src/main/java/ru/dz/netology/web_springmvc/http_web/Request.java
+
+### IntelliJ IDEA ###
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
