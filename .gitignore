@@ -10,6 +10,7 @@ src/main/java/ru/dz/netology/synchronization
 src/main/java/ru/dz/netology/atomic_volitile
 src/main/java/ru/dz/netology/concurrent_collection
 src/main/java/ru/dz/netology/phone_book_tdd
+src/test/java
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
