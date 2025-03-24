@@ -9,8 +9,6 @@ src/main/java/ru/dz/netology/Main.java
 src/main/java/ru/dz/netology/synchronization
 src/main/java/ru/dz/netology/atomic_volitile
 src/main/java/ru/dz/netology/concurrent_collection
-src/main/java/ru/dz/netology/web_springmvc/http_web/HttpMethod.java
-src/main/java/ru/dz/netology/web_springmvc/http_web/Request.java
 src/main/java/ru/dz/netology/phone_book_tdd
 
 ### IntelliJ IDEA ###
