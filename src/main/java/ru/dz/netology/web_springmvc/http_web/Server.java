@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,7 @@ public class Server {
     private final static int THREAD_POOL_SIZE = 64;
     private final ExecutorService threadPoll;
 
-    private ConcurrentHashMap<HttpMethod, ConcurrentHashMap<Path, Handler>> handlers;
+    private ConcurrentHashMap<HttpMethod, ConcurrentHashMap<URI, Handler>> handlers;
 
     public Server(int port) {
         this.port = port;
@@ -25,13 +27,13 @@ public class Server {
         this.handlers = new ConcurrentHashMap<>();
     }
 
-    public void addHandler(String addHttpMethod, String addPath, Handler handler) {
-        HttpMethod httpMethod = HttpMethod.valueOf(addHttpMethod);
-        Path path = Path.of(addPath);
+    public void addHandler(String addHttpMethod, String addPath, Handler handler) throws URISyntaxException {
+        HttpMethod httpMethod = HttpMethod.valueOf(addHttpMethod.toUpperCase());
+        URI path = new URI(addPath);
         if (handlers.containsKey(httpMethod)) {
             handlers.get(httpMethod).put(path, handler);
         } else {
-            ConcurrentHashMap<Path, Handler> pathHandler = new ConcurrentHashMap<>();
+            ConcurrentHashMap<URI, Handler> pathHandler = new ConcurrentHashMap<>();
             pathHandler.put(path, handler);
             handlers.put(httpMethod, pathHandler);
         }
@@ -54,8 +56,8 @@ public class Server {
         }
     }
 
-    private Handler findHandler(HttpMethod httpMethod, Path path) {
-        Map<Path, Handler> methodHandler = handlers.get(httpMethod);
+    private Handler findHandler(HttpMethod httpMethod, URI path) {
+        Map<URI, Handler> methodHandler = handlers.get(httpMethod);
         if (methodHandler != null) {
             return methodHandler.get(path);
         }
@@ -76,7 +78,7 @@ public class Server {
 
             Request request = Request.parseRequest(in);
             HttpMethod method = request.getMethod();
-            Path path = request.getPath();
+            URI path = request.getPath();
 
             Handler handler = findHandler(method, path);
 
@@ -96,6 +98,4 @@ public class Server {
             }
         }
     }
-
-
 }
