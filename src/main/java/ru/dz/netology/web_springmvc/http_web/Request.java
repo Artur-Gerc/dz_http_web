@@ -8,11 +8,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class Request {
     private HttpMethod method;
@@ -21,15 +17,20 @@ public class Request {
     private Map<String, String> headers;
     private String body;
 
-    private List<NameValuePair> params;
+    private List<NameValuePair> queryParams;
+    private List<NameValuePair> postParam;
 
-    public Request(HttpMethod method, URI path, String httpType, List<NameValuePair> params, Map<String, String> headers, String body) {
+
+    public Request(HttpMethod method, URI path, String httpType, List<NameValuePair> queryParams,
+                   List<NameValuePair> postParam, Map<String, String> headers, String body) {
         this.method = method;
         this.path = path;
         this.httpType = httpType;
         this.headers = headers;
         this.body = body;
-        this.params = params;
+        this.queryParams = queryParams;
+        this.postParam = postParam;
+
     }
 
     public HttpMethod getMethod() {
@@ -72,10 +73,8 @@ public class Request {
             URI uri = new URI(requestUri);
             URI path = new URI(uri.getPath());
 
-
             String httpType = dataInRequestLine[2];
 
-            List<NameValuePair> params = getQueryParams(path);
 
             Map<String, String> headers = new HashMap<>();
 
@@ -89,33 +88,62 @@ public class Request {
 
             StringBuilder body = new StringBuilder();
 
-            String bodyLine;
+            final int MAX_BODY_LENGTH = 10_000_000;
             if (headers.containsKey("Content-Length")) {
                 int contentLength = Integer.parseInt(headers.get("Content-Length"));
+
                 if (contentLength > 0) {
-                    while ((bodyLine = in.readLine()) != null) {
-                        body.append(bodyLine);
+                    if (contentLength > MAX_BODY_LENGTH) {
+                        throw new IOException("Тело запроса слишком большое: " + contentLength + " байт");
+                    }
+                    final int BUFFER_SIZE = 8192;
+                    int totalRead = 0;
+
+                    while (totalRead < contentLength) {
+                        char[] buffer = new char[BUFFER_SIZE];
+                        int bytesToRead = Math.min(BUFFER_SIZE, contentLength - totalRead);
+                        int bytesRead = in.read(buffer, 0, bytesToRead);
+
+                        if (bytesRead == -1) {
+                            throw new IOException("Непредвиденный конец потока при чтении тела запроса");
+                        }
+
+                        body.append(buffer, 0, bytesRead);
+
+                        totalRead += bytesRead;
                     }
                 }
             }
 
-            return new Request(method, path, httpType, params, headers, body.toString());
+            List<NameValuePair> queryParams = getQueryParams(uri);
+            List<NameValuePair> postParams = getPostParams(body.toString());
+
+            return new Request(method, path, httpType, queryParams, postParams, headers, body.toString());
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static List<NameValuePair> getQueryParams(URI path){
-        List<NameValuePair> params = URLEncodedUtils.parse(path, StandardCharsets.UTF_8);
-        return params;
+    public static List<NameValuePair> getQueryParams(URI path) {
+        return URLEncodedUtils.parse(path, StandardCharsets.UTF_8);
     }
 
-    public Optional<NameValuePair> getQueryParam(String name) {
-        for (NameValuePair param : params){
-            if(param.getName().equals(name)){
-                return Optional.of(param);
-            }
-        }
-        return Optional.empty();
+    public String getQueryParam(String name) {
+        return queryParams.stream().filter(param -> param.getName().equals(name))
+                .map(NameValuePair::getValue)
+                .findFirst()
+                .orElse(null);
+    }
+
+
+    public static List<NameValuePair> getPostParams(String body) {
+        return URLEncodedUtils.parse(body, StandardCharsets.UTF_8);
+    }
+
+    public List<String> getPostParam(String paramName) {
+        return postParam.stream()
+                .filter(param -> param.getName().equals(paramName))
+                .map(NameValuePair::getValue)
+                .toList();
     }
 }
