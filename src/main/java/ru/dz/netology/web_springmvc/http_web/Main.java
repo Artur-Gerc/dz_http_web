@@ -1,8 +1,10 @@
 package ru.dz.netology.web_springmvc.http_web;
 
 
+import java.net.URISyntaxException;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws URISyntaxException {
         Server server = new Server(9999);
         server.addHandler("GET", "/messages", (request, stream) -> {
             String responseBody = "Hello from GET /messages";
